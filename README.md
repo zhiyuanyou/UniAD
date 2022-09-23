@@ -51,7 +51,7 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
     (1) For slurm group:  `sh train.sh #NUM_GPUS #PARTITION`.
 
-    (2) For torch.distributed.launch: `sh train_torch.sh #NUM_GPUS #CLASS_NAME` 
+    (2) For torch.distributed.launch: `sh train_torch.sh #NUM_GPUS #CLASS_NAME`.
 
     **Note**: for torch.distributed.launch, you should *train one vis_decoder for a specific class for one time*. 
 
@@ -63,6 +63,6 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
     (1) For slurm group:  `sh vis_recon.sh 1 #PARTITION`.
 
-    (2) For torch.distributed.launch:  `sh vis_recon_torch.sh 1 #CLASS_NAME` 
+    (2) For torch.distributed.launch:  `sh vis_recon_torch.sh 1 #CLASS_NAME`.
 
     **Note**: for torch.distributed.launch, you should *visualize a specific class for one time*. 
