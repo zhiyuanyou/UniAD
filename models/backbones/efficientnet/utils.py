@@ -719,16 +719,16 @@ model_urls_advprop = {
 
 
 def load_pretrained_weights(
-    model, model_name, pretrained_model=None, load_fc=True, advprop=False
+    model, model_name, pretrained_model="", load_fc=True, advprop=False
 ):
     """Loads pretrained weights from weights path or download using url.
 
     Args:
         model (Module): The whole model of efficientnet.
         model_name (str): Model name of efficientnet.
-        pretrained_model (None or str):
+        pretrained_model (str):
             str: path to pretrained weights file on the local disk.
-            None: use pretrained weights downloaded from the Internet.
+            if not exist: pretrained weights downloaded from the Internet.
         load_fc (bool): Whether to load pretrained weights for fc layer at the end of the model.
         advprop (bool): Whether to load pretrained weights
                         trained with advprop (valid when pretrained_model is None).

@@ -382,7 +382,7 @@ def wide_resnet101_2(pretrained, pretrained_model=None, **kwargs):
     )
 
 
-def build_resnet(model_name, pretrained, layers, pretrained_model=None, **kwargs):
+def build_resnet(model_name, pretrained, layers, pretrained_model="", **kwargs):
     if model_name in ["resnet18", "resnet34"]:
         model = ResNet(BasicBlock, layers, **kwargs)
     else:

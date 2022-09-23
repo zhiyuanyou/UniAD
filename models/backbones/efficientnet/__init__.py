@@ -84,9 +84,7 @@ def efficientnet_l2(pretrained, outblocks, outstrides, pretrained_model=None):
     )
 
 
-def build_efficient(
-    model_name, pretrained, outblocks, outstrides, pretrained_model=None
-):
+def build_efficient(model_name, pretrained, outblocks, outstrides, pretrained_model=""):
     if pretrained:
         model = EfficientNet.from_pretrained(
             model_name,
