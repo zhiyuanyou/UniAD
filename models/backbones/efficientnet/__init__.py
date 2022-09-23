@@ -24,61 +24,61 @@ __all__ = [
 ]
 
 
-def efficientnet_b0(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b0(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b0", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b1(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b1(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b1", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b2(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b2(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b2", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b3(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b3(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b3", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b4(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b4(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b4", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b5(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b5(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b5", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b6(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b6(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b6", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b7(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b7(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b7", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_b8(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_b8(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-b8", pretrained, outblocks, outstrides, pretrained_model
     )
 
 
-def efficientnet_l2(pretrained, outblocks, outstrides, pretrained_model=None):
+def efficientnet_l2(pretrained, outblocks, outstrides, pretrained_model=""):
     return build_efficient(
         "efficientnet-l2", pretrained, outblocks, outstrides, pretrained_model
     )
