@@ -1,0 +1,120 @@
+version: v1.0.0
+random_seed: 133
+port: 11111
+
+dataset:
+  type: custom
+
+  image_reader:
+    type: opencv
+    kwargs:
+      image_dir: ../../data/MVTec-AD/mvtec_anomaly_detection/
+      color_mode: RGB
+
+  train:
+    meta_file: ../../data/MVTec-AD/train.json
+    rebalance: False
+    hflip: False
+    vflip: False
+    rotate: False
+
+  test:
+    meta_file: ../../data/MVTec-AD/test.json
+
+  input_size: [224,224] # [h,w]
+  pixel_mean: [0.485, 0.456, 0.406]
+  pixel_std: [0.229, 0.224, 0.225]
+  batch_size: 8
+  workers: 4 # number of workers of dataloader for each process
+
+criterion:
+  - name: FeatureMSELoss
+    type: FeatureMSELoss
+    kwargs:
+      weight: 1.0
+
+trainer:
+  max_epoch: 1000
+  clip_max_norm: 0.1
+  val_freq_epoch: 10
+  print_freq_step: 1
+  tb_freq_step: 1
+  lr_scheduler:
+    type: StepLR
+    kwargs:
+      step_size: 800
+      gamma: 0.1
+  optimizer:
+    type: AdamW
+    kwargs:
+      lr: 0.0001
+      betas: [0.9, 0.999]
+      weight_decay: 0.0001
+
+saver:
+  auto_resume: False
+  always_save: False
+  load_path: checkpoints/ckpt_best.pth.tar
+  save_dir: checkpoints/
+  log_dir: log/
+
+evaluator:
+  save_dir: result_eval_temp
+  key_metric: mean_pixel_auc
+  metrics:
+    auc:
+      - name: std
+      - name: max
+        kwargs:
+          avgpool_size: [16, 16]
+      - name: pixel
+  vis_compound:
+    save_dir: vis_compound
+    max_score: null
+    min_score: null
+  # vis_single:
+  #   save_dir: vis_single
+  #   max_score: null
+  #   min_score: null
+
+
+frozen_layers: [backbone]
+
+net:
+    - name: backbone
+      type: models.backbones.efficientnet_b4
+      frozen: True
+      kwargs:
+        pretrained: True
+        # select outlayers from: resnet [1,2,3,4], efficientnet [1,2,3,4,5]
+        # empirically, for industrial: resnet [1,2,3] or [2,3], efficientnet [1,2,3,4] or [2,3,4]
+        outlayers: [1,2,3,4]
+        pretrained_model: /mnt/lustre/share/youzhiyuan/model_zoo/efficientnet/efficientnet-b4-6ed6700e.pth
+    - name: neck
+      prev: backbone
+      type: models.necks.MFCN
+      kwargs:
+        outstrides: [16]
+    - name: reconstruction
+      prev: neck
+      type: models.reconstructions.UniAD
+      kwargs: 
+        pos_embed_type: learned
+        hidden_dim: 256
+        nhead: 8
+        num_encoder_layers: 4
+        num_decoder_layers: 4
+        dim_feedforward: 1024
+        dropout: 0.1
+        activation: relu
+        normalize_before: False
+        feature_jitter:
+          scale: 20.0
+          prob: 1.0
+        neighbor_mask:
+          neighbor_size: [7,7]
+          mask: [True, True, True] # whether use mask in [enc, dec1, dec2]
+        save_recon:
+          save_dir: result_recon
+        initializer:
+          method: xavier_uniform

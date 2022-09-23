@@ -1,0 +1,85 @@
+version: v1.0.0
+random_seed: 131
+port: 11111
+
+dataset:
+  type: custom
+
+  image_reader:
+    type: opencv
+    kwargs:
+      image_dir: ../../data/MVTec-AD/mvtec_anomaly_detection/
+      color_mode: RGB
+
+  train:
+    meta_file: ../../data/MVTec-AD/json_vis_decoder/test_{class_name}.json
+    rebalance: False
+    hflip: False
+    vflip: False
+    rotate: False
+
+  test:
+    meta_file: ../../data/MVTec-AD/json_vis_decoder/test_{class_name}.json
+
+  input_size: [224,224] # [h,w]
+  pixel_mean: [0.485, 0.456, 0.406]
+  pixel_std: [0.229, 0.224, 0.225]
+  batch_size: 32
+  workers: 4 # number of workers of dataloader for each process
+
+criterion:
+  - name: ImageMSELoss
+    type: ImageMSELoss
+    kwargs:
+      weight: 1.0
+
+trainer:
+  max_epoch: 1000
+  clip_max_norm: 0.1
+  val_freq_epoch: 10
+  print_freq_step: 1
+  tb_freq_step: 1
+  lr_scheduler:
+    type: StepLR
+    kwargs:
+      step_size: 800
+      gamma: 0.1
+  optimizer:
+    type: AdamW
+    kwargs:
+      lr: 0.0001
+      betas: [0.9, 0.999]
+      weight_decay: 0.0001
+
+evaluator:
+  save_dir: result_eval_temp
+
+saver:
+  auto_resume: True
+  always_save: False
+  # load_path: checkpoints/ckpt_best.pth.tar
+  save_dir: checkpoints/
+  log_dir: log/
+
+frozen_layers: [backbone]
+
+net:
+    - name: backbone
+      type: models.backbones.efficientnet_b4
+      frozen: True
+      kwargs:
+        pretrained: True
+        # select outlayers from: resnet [1,2,3,4], efficientnet [1,2,3,4,5]
+        # empirically, for industrial: resnet [1,2,3] or [2,3], efficientnet [1,2,3,4] or [2,3,4]
+        outlayers: [1,2,3,4]
+        pretrained_model: /mnt/lustre/share/youzhiyuan/model_zoo/efficientnet/efficientnet-b4-6ed6700e.pth
+    - name: neck
+      prev: backbone
+      type: models.necks.MFCN
+      kwargs:
+        outstrides: [16]
+    - name: reconstruction
+      prev: neck
+      type: models.reconstructions.VisDecoder
+      kwargs:
+        block_type: basic 
