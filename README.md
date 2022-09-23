@@ -33,7 +33,7 @@ Official PyTorch Implementation of [A Unified Model for Multi-class Anomaly Dete
 
 | Detection AUROC | Localization AUROC | Checkpoints |
 | ------ | ------ | ------ |
-|  96.7 | 96.8 | [here]() |
+|  96.7 | 96.8 | [here](https://drive.google.com/file/d/1q03ysv_5VJATlDN-A-c9zvcTuyEeaQHG/view?usp=sharing) |
 
 ### 1.2 CIFAR-10
 
