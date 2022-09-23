@@ -54,7 +54,7 @@ trainer:
 saver:
   auto_resume: False
   always_save: False
-  load_path: checkpoints/ckpt_best.pth.tar
+  load_path: checkpoints/ckpt.pth.tar
   save_dir: checkpoints/
   log_dir: log/
 
@@ -77,7 +77,6 @@ evaluator:
   #   max_score: null
   #   min_score: null
 
-
 frozen_layers: [backbone]
 
 net:
@@ -89,7 +88,6 @@ net:
         # select outlayers from: resnet [1,2,3,4], efficientnet [1,2,3,4,5]
         # empirically, for industrial: resnet [1,2,3] or [2,3], efficientnet [1,2,3,4] or [2,3,4]
         outlayers: [1,2,3,4]
-        pretrained_model: /mnt/lustre/share/youzhiyuan/model_zoo/efficientnet/efficientnet-b4-6ed6700e.pth
     - name: neck
       prev: backbone
       type: models.necks.MFCN
