@@ -1,7 +1,9 @@
 #!/bin/bash
 ROOT=../../
 export PYTHONPATH=$ROOT:$PYTHONPATH
+if [ ! -d "./log_srun/" ];then
 mkdir log_srun
+fi
 
 for cls in bottle cable capsule carpet grid hazelnut leather metal_nut pill screw tile toothbrush transistor wood zipper
 do
