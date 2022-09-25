@@ -28,11 +28,11 @@ from utils.misc_helper import (
 )
 from utils.optimizer_helper import get_optimizer
 
-parser = argparse.ArgumentParser(description="Anomaly Detection TRansformer Framework")
+parser = argparse.ArgumentParser(description="UniAD Framework")
 parser.add_argument("--config", default="./config.yaml")
 parser.add_argument("--class_name", default="")
-parser.add_argument("-e", "--evaluate", action="store_true")
-parser.add_argument('--local_rank', default=None, help='local rank for dist')
+parser.add_argument("-v", "--visualization", action="store_true")
+parser.add_argument("--local_rank", default=None, help="local rank for dist")
 
 
 class_name_list = [
@@ -61,11 +61,7 @@ def main():
     with open(args.config) as f:
         config = EasyDict(yaml.load(f, Loader=yaml.FullLoader))
 
-    #############################################################
     config.dataset.train.meta_file = config.dataset.train.meta_file.replace(
-        "{class_name}", args.class_name
-    )
-    config.dataset.test.meta_file = config.dataset.test.meta_file.replace(
         "{class_name}", args.class_name
     )
     config.port = config["port"] + class_name_list.index(args.class_name)
@@ -75,7 +71,6 @@ def main():
     config.exp_path = os.path.join(os.path.dirname(args.config), args.class_name)
     config.save_path = os.path.join(config.exp_path, config.saver.save_dir)
     config.log_path = os.path.join(config.exp_path, config.saver.log_dir)
-    config.evaluator.eval_dir = os.path.join(config.exp_path, config.evaluator.save_dir)
     if rank == 0:
         os.makedirs(config.save_path, exist_ok=True)
         os.makedirs(config.log_path, exist_ok=True)
@@ -142,15 +137,18 @@ def main():
             load_path = os.path.join(config.exp_path, load_path)
         load_state(load_path, model)
 
-    train_loader, val_loader = build_dataloader(config.dataset, distributed=True)
+    train_loader, _ = build_dataloader(config.dataset, distributed=True)
+
+    if args.visualization:
+        vis_rec(train_loader, model)
+        return
 
     criterion = build_criterion(config.criterion)
 
     for epoch in range(last_epoch, config.trainer.max_epoch):
         train_loader.sampler.set_epoch(epoch)
-        val_loader.sampler.set_epoch(epoch)
         last_iter = epoch * len(train_loader)
-        train_one_epoch(
+        train_loss = train_one_epoch(
             train_loader,
             model,
             optimizer,
@@ -163,8 +161,9 @@ def main():
         )
         lr_scheduler.step(epoch)
 
-        #########################################################
         if rank == 0:
+            is_best = train_loss <= best_metric
+            best_metric = min(train_loss, best_metric)
             save_checkpoint(
                 {
                     "epoch": epoch + 1,
@@ -173,28 +172,13 @@ def main():
                     "best_metric": best_metric,
                     "optimizer": optimizer.state_dict(),
                 },
-                False,
+                is_best,
                 config,
             )
-        #########################################################
 
-        if (epoch + 1) % config.trainer.val_freq_epoch == 0:
-            val_loss = validate_rec(val_loader, model, criterion)
-
-            if rank == 0:
-                is_best = val_loss <= best_metric
-                best_metric = min(val_loss, best_metric)
-                save_checkpoint(
-                    {
-                        "epoch": epoch + 1,
-                        "arch": config.net,
-                        "state_dict": model.state_dict(),
-                        "best_metric": best_metric,
-                        "optimizer": optimizer.state_dict(),
-                    },
-                    is_best,
-                    config,
-                )
+        if config.visualization:
+            if (epoch + 1) % config.visualization.vis_freq_epoch == 0:
+                vis_rec(train_loader, model)
 
 
 def train_one_epoch(
@@ -227,6 +211,7 @@ def train_one_epoch(
     logger = logging.getLogger("global_logger")
     end = time.time()
 
+    train_loss = 0
     for i, input in enumerate(train_loader):
         curr_step = start_iter + i
         current_lr = lr_scheduler.get_lr()[0]
@@ -244,6 +229,7 @@ def train_one_epoch(
         dist.all_reduce(reduced_loss)
         reduced_loss = reduced_loss / world_size
         losses.update(reduced_loss.item())
+        train_loss += reduced_loss.item()
 
         # backward
         optimizer.zero_grad()
@@ -281,36 +267,21 @@ def train_one_epoch(
 
         end = time.time()
 
+    return train_loss / len(train_loader)
 
-def validate_rec(val_loader, model, criterion):
+
+def vis_rec(loader, model):
     model.eval()
-    world_size = dist.get_world_size()
-    rank = dist.get_rank()
-
-    if rank == 0:
-        os.makedirs(config.evaluator.eval_dir, exist_ok=True)
-    # all threads write to config.evaluator.eval_dir, it must be made before every thread begin to write
-    dist.barrier()
 
     pixel_mean = config.dataset.pixel_mean
     pixel_mean = torch.tensor(pixel_mean).cuda().unsqueeze(1).unsqueeze(1)  # 3 x 1 x 1
     pixel_std = config.dataset.pixel_std
     pixel_std = torch.tensor(pixel_std).cuda().unsqueeze(1).unsqueeze(1)  # 3 x 1 x 1
 
-    val_loss = 0
     with torch.no_grad():
-        for i, input in enumerate(val_loader):
+        for i, input in enumerate(loader):
             # forward
             outputs = model(input)
-            loss = 0
-            for name, criterion_loss in criterion.items():
-                weight = criterion_loss.weight
-                loss += weight * criterion_loss(outputs)
-            reduced_loss = loss.clone()
-            dist.all_reduce(reduced_loss)
-            reduced_loss = (reduced_loss / world_size).item()
-            val_loss += reduced_loss
-
             filenames = outputs["filename"]
             images = outputs["image"]
             image_recs = outputs["image_rec"]
@@ -320,12 +291,11 @@ def validate_rec(val_loader, model, criterion):
                 filenames, images, image_recs, clsnames
             ):
                 filedir, filename = os.path.split(filename)
-                filename_, _ = os.path.splitext(filename)
                 _, defename = os.path.split(filedir)
-                filepath = os.path.join(
-                    config.evaluator.eval_dir,
-                    "{}_{}_{}.jpg".format(clasname, defename, filename_),
-                )
+                filename_, _ = os.path.splitext(filename)
+                vis_dir = os.path.join(config.visualization.vis_dir, clasname, defename)
+                os.makedirs(vis_dir, exist_ok=True)
+                vis_path = os.path.join(vis_dir, filename_ + ".jpg")
 
                 image = (image * pixel_std + pixel_mean) * 255
                 image_rec = (image_rec * pixel_std + pixel_mean) * 255
@@ -333,11 +303,8 @@ def validate_rec(val_loader, model, criterion):
                     1, 2, 0
                 )  # 2h x w x 3
                 image = image.cpu().numpy()
-
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                cv2.imwrite(filepath, image)
-
-    return val_loss / len(val_loader)
+                cv2.imwrite(vis_path, image)
 
 
 if __name__ == "__main__":

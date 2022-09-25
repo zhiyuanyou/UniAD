@@ -18,9 +18,6 @@ dataset:
     vflip: False
     rotate: False
 
-  test:
-    meta_file: ../../data/MVTec-AD/json_vis_decoder/test_{class_name}.json
-
   input_size: [224,224] # [h,w]
   pixel_mean: [0.485, 0.456, 0.406]
   pixel_std: [0.229, 0.224, 0.225]
@@ -36,7 +33,6 @@ criterion:
 trainer:
   max_epoch: 1000
   clip_max_norm: 0.1
-  val_freq_epoch: 10
   print_freq_step: 1
   tb_freq_step: 1
   lr_scheduler:
@@ -51,8 +47,10 @@ trainer:
       betas: [0.9, 0.999]
       weight_decay: 0.0001
 
-evaluator:
-  save_dir: result_eval_temp
+# Optional, set False to disable
+visualization:
+  vis_freq_epoch: 10
+  vis_dir: vis
 
 saver:
   auto_resume: True
@@ -81,4 +79,4 @@ net:
       prev: neck
       type: models.reconstructions.VisDecoder
       kwargs:
-        block_type: basic 
+        block_type: basic
