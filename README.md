@@ -61,8 +61,8 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
 - **Visualize** by running (only support 1 GPU): 
 
-    (1) For slurm group:  `sh vis_recon.sh 1 #PARTITION`.
+    (1) For slurm group:  `sh vis_recon.sh #PARTITION`.
 
-    (2) For torch.distributed.launch:  `sh vis_recon_torch.sh 1 #CLASS_NAME`.
+    (2) For torch.distributed.launch:  `sh vis_recon_torch.sh #CLASS_NAME`.
 
     **Note**: for torch.distributed.launch, you should *visualize a specific class for one time*. 
