@@ -25,7 +25,7 @@ Official PyTorch Implementation of [A Unified Model for Multi-class Anomaly Dete
 
     (1) For slurm group:  `sh train.sh #NUM_GPUS #PARTITION` or `sh test.sh #NUM_GPUS #PARTITION`.
 
-    (2) For torch.distributed.launch:  `sh train_torch.sh #NUM_GPUS` or `sh test_torch.sh #NUM_GPUS`.
+    (2) For torch.distributed.launch:  `sh train_torch.sh #NUM_GPUS #GPU_IDS` or `sh test_torch.sh #NUM_GPUS #GPU_IDS`, *e.g.*, train with GPUs 1,3,4,6 (4 GPUs in total): `sh train_torch.sh 4 1,3,4,6`.
 
     **Note**: During test, please *set config.saver.load_path* to load the checkpoints. 
 
@@ -51,7 +51,7 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
     (1) For slurm group:  `sh train.sh #NUM_GPUS #PARTITION`.
 
-    (2) For torch.distributed.launch: `sh train_torch.sh #NUM_GPUS #CLASS_NAME`.
+    (2) For torch.distributed.launch: `sh train_torch.sh #NUM_GPUS #GPU_IDS #CLASS_NAME`.
 
     **Note**: for torch.distributed.launch, you should *train one vis_decoder for a specific class for one time*. 
 
