@@ -30,10 +30,10 @@ from utils.misc_helper import (
 from utils.optimizer_helper import get_optimizer
 from utils.vis_helper import visualize_compound, visualize_single
 
-parser = argparse.ArgumentParser(description="Anomaly Detection TRansformer Framework")
+parser = argparse.ArgumentParser(description="UniAD Framework")
 parser.add_argument("--config", default="./config.yaml")
 parser.add_argument("-e", "--evaluate", action="store_true")
-parser.add_argument('--local_rank', default=None, help='local rank for dist')
+parser.add_argument("--local_rank", default=None, help="local rank for dist")
 
 
 def main():
@@ -69,6 +69,7 @@ def main():
     reproduce = config.get("reproduce", None)
     if random_seed:
         set_random_seed(random_seed, reproduce)
+
     # create model
     model = ModelHelper(config.net)
     model.cuda()
@@ -143,24 +144,9 @@ def main():
         )
         lr_scheduler.step(epoch)
 
-        #########################################################
-        if rank == 0:
-            save_checkpoint(
-                {
-                    "epoch": epoch + 1,
-                    "arch": config.net,
-                    "state_dict": model.state_dict(),
-                    "best_metric": best_metric,
-                    "optimizer": optimizer.state_dict(),
-                },
-                False,
-                config,
-            )
-        #########################################################
-
         if (epoch + 1) % config.trainer.val_freq_epoch == 0:
             ret_metrics = validate(val_loader, model)
-            # PS: only rank 0 has ret_metrics
+            # only ret_metrics on rank0 is not empty
             if rank == 0:
                 ret_key_metric = ret_metrics[key_metric]
                 is_best = ret_key_metric >= best_metric
@@ -194,7 +180,6 @@ def train_one_epoch(
     data_time = AverageMeter(config.trainer.print_freq_step)
     losses = AverageMeter(config.trainer.print_freq_step)
 
-    # switch to train mode
     model.train()
     # freeze selected layers
     for layer in frozen_layers:
@@ -314,14 +299,14 @@ def validate(val_loader, model):
     ret_metrics = {}  # only ret_metrics on rank0 is not empty
     if rank == 0:
         logger.info("Gathering final results ...")
-        # Total loss
+        # total loss
         logger.info(" * Loss {:.5f}\ttotal_num={}".format(final_loss, total_num.item()))
         fileinfos, preds, masks = merge_together(config.evaluator.eval_dir)
         shutil.rmtree(config.evaluator.eval_dir)
         # evaluate, log & vis
         ret_metrics = performances(fileinfos, preds, masks, config.evaluator.metrics)
         log_metrics(ret_metrics, config.evaluator.metrics)
-        if config.evaluator.get("vis_compound", None):
+        if args.evaluate and config.evaluator.get("vis_compound", None):
             visualize_compound(
                 fileinfos,
                 preds,
@@ -329,7 +314,7 @@ def validate(val_loader, model):
                 config.evaluator.vis_compound,
                 config.dataset.image_reader,
             )
-        if config.evaluator.get("vis_single", None):
+        if args.evaluate and config.evaluator.get("vis_single", None):
             visualize_single(
                 fileinfos,
                 preds,
