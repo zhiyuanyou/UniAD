@@ -29,11 +29,13 @@ Official PyTorch Implementation of [A Unified Model for Multi-class Anomaly Dete
 
     **Note**: During test, please *set config.saver.load_path* to load the checkpoints. 
 
-- **Results and checkpoints**. Training on 8 GPUs (NVIDIA Tesla V100 16GB) results in following performance.
+- **Results and checkpoints**. 
 
-| Detection AUROC | Localization AUROC | Checkpoints | Note |
-| ------ | ------ | ------ | ------ | 
-|  96.7 | 96.8 | [here](https://drive.google.com/file/d/1q03ysv_5VJATlDN-A-c9zvcTuyEeaQHG/view?usp=sharing) | ***A unified model for all categories*** |
+| Platform | GPU | Detection AUROC | Localization AUROC | Checkpoints | Note |
+| ------ | ------ | ------ | ------ | ------ | ------ | 
+| slurm group | 8 GPUs (NVIDIA Tesla V100 16GB)|  96.7 | 96.8 | [here](https://drive.google.com/file/d/1q03ysv_5VJATlDN-A-c9zvcTuyEeaQHG/view?usp=sharing) | ***A unified model for all categories*** |
+| torch.distributed.launch | 2 GPUs (NVIDIA GeForce GTX 1080 Ti 11 GB)|  96.9 | 97.3 | [here](https://drive.google.com/file/d/1x3neeobnxiKY-np7iNLMa_wfHnsWM4jM/view?usp=sharing) | ***A unified model for all categories*** |
+
 
 ### 1.2 CIFAR-10
 
