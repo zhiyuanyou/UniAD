@@ -37,11 +37,32 @@ Official PyTorch Implementation of [A Unified Model for Multi-class Anomaly Dete
 | torch.distributed.launch | 1 GPU (NVIDIA GeForce GTX 1080 Ti 11 GB)|  97.0 | 97.6 | [here](https://drive.google.com/file/d/1v282ZlibC-b0H9sjLUlOSCFNzEv-TIuh/view?usp=sharing) | ***A unified model for all categories*** |
 
 
-
-
 ### 1.2 CIFAR-10
 
-- [ ] TODO
+- **Create the CIFAR-10 dataset directory**. Download the CIFAR-10 dataset from [here](http://www.cs.toronto.edu/~kriz/cifar.html). Unzip the file and move some to `./data/CIFAR-10/`. The CIFAR-10 dataset directory should be as follows. 
+
+```
+|-- data
+    |-- CIFAR-10
+        |-- cifar-10-batches-py
+```
+
+- **cd the experiment directory** by running `cd ./experiments/CIFAR-10/01234/`. Here we take class 0,1,2,3,4 as normal samples, and other settings are similar.
+
+- **Train or test** by running: 
+
+    (1) For slurm group:  `sh train.sh #NUM_GPUS #PARTITION` or `sh test.sh #NUM_GPUS #PARTITION`.
+
+    (2) For torch.distributed.launch:  `sh train_torch.sh #NUM_GPUS #GPU_IDS` or `sh test_torch.sh #NUM_GPUS #GPU_IDS`.
+
+    **Note**: During test, please *set config.saver.load_path* to load the checkpoints. 
+
+- **Results and checkpoints**. Training on 8 GPUs (NVIDIA Tesla V100 16GB) results in following performance.
+
+| Normal Samples | {01234} | {56789} | {02468} | {13579} | Mean |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| AUROC | 84.4 | 79.6 | 93.0 | 89.1 | 86.5 |
+
 
 ## 2. Visualize Reconstructed Features
 
