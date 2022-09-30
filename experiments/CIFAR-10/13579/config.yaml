@@ -1,0 +1,94 @@
+version: v1.0.0
+random_seed: 131
+port: 11111
+
+dataset:
+  type: cifar10
+  train:
+    root_dir: ../../../data/CIFAR-10/
+  test: 
+    root_dir: ../../../data/CIFAR-10/
+  input_size: [224,224] # [h,w]
+  normals: [1,3,5,7,9]
+  batch_size: 16
+  workers: 4 # number of workers of dataloader for each process
+
+criterion:
+  - name: FeatureMSELoss
+    type: FeatureMSELoss
+    kwargs:
+      weight: 1.0
+
+trainer:
+  max_epoch: 1000
+  clip_max_norm: 0.1
+  val_freq_epoch: 10
+  print_freq_step: 1
+  tb_freq_step: 1
+  lr_scheduler:
+    type: StepLR
+    kwargs:
+      step_size: 800
+      gamma: 0.1
+  optimizer:
+    type: AdamW
+    kwargs:
+      lr: 0.0001
+      weight_decay: 0.0001
+
+saver:
+  auto_resume: False
+  always_save: False
+  load_path: checkpoints/ckpt.pth.tar
+  save_dir: checkpoints/
+  log_dir: log/
+
+evaluator:
+  save_dir: result_eval_temp
+  key_metric: mean_mean_auc
+  metrics:
+    auc:
+      - name: mean
+      - name: std
+      - name: max
+        kwargs:
+          avgpool_size: [16, 16]
+
+frozen_layers: [backbone]
+
+net:
+    - name: backbone
+      type: models.backbones.efficientnet_b4
+      frozen: True
+      kwargs:
+        pretrained: True
+        # select outlayers from: resnet [1,2,3,4], efficientnet [1,2,3,4,5]
+        # empirically, for industrial: resnet [1,2,3] or [2,3], efficientnet [1,2,3,4] or [2,3,4]
+        outlayers: [1,2,3,4,5]
+    - name: neck
+      prev: backbone
+      type: models.necks.MFCN
+      kwargs:
+        outstrides: [16]
+    - name: reconstruction
+      prev: neck
+      type: models.reconstructions.UniAD
+      kwargs: 
+        pos_embed_type: learned
+        hidden_dim: 256
+        nhead: 8
+        num_encoder_layers: 4
+        num_decoder_layers: 4
+        dim_feedforward: 1024
+        dropout: 0.1
+        activation: relu
+        normalize_before: False
+        feature_jitter:
+          scale: 20.0
+          prob: 1.0
+        neighbor_mask:
+          neighbor_size: [7,7]
+          mask: [True, True, True] # whether use mask in [enc, dec1, dec2]
+        save_recon: False # save time
+        initializer:
+          method: xavier_uniform
