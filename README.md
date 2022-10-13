@@ -91,3 +91,22 @@ We **highly recommend** to visualize reconstructed features, since this could di
     (2) For torch.distributed.launch:  `sh vis_recon_torch.sh #CLASS_NAME`.
 
     **Note**: for torch.distributed.launch, you should *visualize a specific class for one time*. 
+
+# 3. Questions
+
+### 3.1 Explanation of evaluation results
+
+The first line of the evaluation results are shown as follows. 
+
+|  clsname   |   pixel  |   mean   |   max    |   std    |
+|:----------:|:--------:|:--------:|:--------:|:--------:|
+
+The *pixel* means anomaly localization results. 
+
+The *mean*, *max*, and *std* mean **post-processing methods** for anomaly detection. That is to say, the anomaly localization result is an anomaly map with the shape of *H x W*. We need to *convert this map to a scalar* as the anomaly score for this whole image. For this convert, you have 3 options: 
+
+- use the *mean* value of the anomaly map.
+- use the *max* value of the (averagely pooled) anomaly map.
+- use the *std* value of the anomaly map.
+
+In our paper, we use *max* for MVTec-AD and *mean* for CIFAR-10. 
