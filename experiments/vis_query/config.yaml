@@ -1,0 +1,40 @@
+version: v1.0.0
+
+data:
+  dataset_dir: ../../data/MVTec-AD/mvtec_anomaly_detection/
+  feature_dir: ../MVTec-AD/result_recon/
+  input_size: [224, 224] # [h,w]
+  pixel_mean: [0.485, 0.456, 0.406]
+  pixel_std: [0.229, 0.224, 0.225]
+
+saver:
+  load_path: ../train_vis_decoder/{class_name}/checkpoints/ckpt.pth.tar
+  save_dir: result_vis_query
+  log_dir: log
+
+vis_query:
+  model_path: ../MVTec-AD/checkpoints/ckpt.pth.tar
+  hidden_dim: 256
+  num_decoder_layers: 4
+  with_text: True
+
+net:
+  - name: backbone
+    type: models.backbones.efficientnet_b4
+    frozen: True
+    kwargs:
+      pretrained: True
+      # select outlayers from: resnet [1,2,3,4], efficientnet [1,2,3,4,5]
+      # empirically, for industrial: resnet [1,2,3] or [2,3], efficientnet [1,2,3,4] or [2,3,4]
+      outlayers: [1,2,3,4]
+      pretrained_model: /mnt/lustre/share/youzhiyuan/model_zoo/efficientnet/efficientnet-b4-6ed6700e.pth
+  - name: neck
+    prev: backbone
+    type: models.necks.MFCN
+    kwargs:
+      outstrides: [16]
+  - name: reconstruction
+    prev: neck
+    type: models.reconstructions.VisDecoder
+    kwargs:
+      block_type: basic
