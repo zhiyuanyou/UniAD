@@ -94,7 +94,7 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
 # 3. Questions
 
-### 3.1 Explanation of evaluation results
+### 3.1 Explanation of Evaluation Results
 
 The first line of the evaluation results are shown as follows. 
 
@@ -110,3 +110,22 @@ The *mean*, *max*, and *std* mean **post-processing methods** for anomaly detect
 - use the *std* value of the anomaly map.
 
 In our paper, we use *max* for MVTec-AD and *mean* for CIFAR-10. 
+
+### 3.2 Visualize Learned Query Embedding
+
+If you have finished the training of the main model and decoders (used for visualization) for MVTec-AD, you could also choose to visualize the learned query embedding in the main model. 
+
+- **cd the experiment directory** by running `cd ./experiments/vis_query/`. 
+
+- **Visualize** by running (only support 1 GPU): 
+
+    (1) For slurm group:  `sh vis_query.sh #PARTITION`.
+
+    (2) For torch.distributed.launch:  `sh vis_query_torch.sh #CLASS_NAME`.
+
+    **Note**: for torch.distributed.launch, you should *visualize a specific class for one time*. 
+
+Some results are very interesting. The learned query embedding partly contains some features of normal samples. However, we ***did not*** fully figure out this and this part ***was not*** included in our paper. 
+
+![Image text](docs/query_bottle.jpg)
+![Image text](docs/query_capsule.jpg)
