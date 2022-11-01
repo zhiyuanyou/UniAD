@@ -36,7 +36,6 @@ def build_custom_dataloader(cfg, training, distributed=True):
     logger.info("building CustomDataset from: {}".format(cfg["meta_file"]))
 
     dataset = CustomDataset(
-        cfg.image_reader["type"],
         image_reader,
         cfg["meta_file"],
         training,
@@ -64,7 +63,6 @@ def build_custom_dataloader(cfg, training, distributed=True):
 class CustomDataset(BaseDataset):
     def __init__(
         self,
-        reader_type,
         image_reader,
         meta_file,
         training,
@@ -72,7 +70,6 @@ class CustomDataset(BaseDataset):
         normalize_fn,
         colorjitter_fn=None,
     ):
-        self.reader_type = reader_type
         self.image_reader = image_reader
         self.meta_file = meta_file
         self.training = training
