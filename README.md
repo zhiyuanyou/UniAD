@@ -92,7 +92,7 @@ We **highly recommend** to visualize reconstructed features, since this could di
 
     **Note**: for torch.distributed.launch, you should *visualize a specific class for one time*. 
 
-# 3. Questions
+## 3. Questions
 
 ### 3.1 Explanation of Evaluation Results
 
@@ -129,3 +129,7 @@ Some results are very interesting. The learned query embedding partly contains s
 
 ![Image text](docs/query_bottle.jpg)
 ![Image text](docs/query_capsule.jpg)
+
+## Acknowledgement
+
+We use some codes from repositories including [detr](https://github.com/facebookresearch/detr) and [efficientnet](https://github.com/lukemelas/EfficientNet-PyTorch). 
